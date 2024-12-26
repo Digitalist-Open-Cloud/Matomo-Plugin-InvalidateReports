@@ -9,12 +9,11 @@
 
 namespace Piwik\Plugins\InvalidateReports;
 
-use Piwik\API\Request;
-use Piwik\Common;
-use Piwik\Period\Range;
 use Piwik\Piwik;
-use Piwik\Site;
 use Piwik\View;
+use Piwik\Plugins\InvalidateReports\API as InvalidateReportsAPI;
+use Piwik\API\Request as APIRequest;
+use Piwik\Request;
 
 /**
  *
@@ -33,6 +32,15 @@ class Controller extends \Piwik\Plugin\ControllerAdmin
         return $view->render();
     }
 
+    public function invalidateReports()
+    {
+        $siteIds = Request::fromRequest()->getStringParameter('idSites', '');
+        $segment = APIRequest::getRawSegmentFromRequest();
+        $months = Request::fromRequest()->getStringParameter('months', '');
+        $api = new InvalidateReportsAPI();
+        return $api->invalidate($siteIds, $segment, $months);
+    }
+
     protected function getAvailableRanges()
     {
         return [
@@ -43,35 +51,5 @@ class Controller extends \Piwik\Plugin\ControllerAdmin
             3  => Piwik::translate('InvalidateReports_XMonths', 3),
             1  => Piwik::translate('InvalidateReports_LastMonth'),
         ];
-    }
-
-    public function invalidateReports()
-    {
-        Piwik::checkUserHasSuperUserAccess();
-        $this->checkTokenInUrl();
-
-        $siteIds = Common::getRequestVar('idSites', '', 'string');
-        $segment = Request::getRawSegmentFromRequest();
-        $months  = Common::getRequestVar('months', '', 'string');
-        $dates   = [];
-        list($minDate, $maxDate) = Site::getMinMaxDateAcrossWebsites($siteIds);
-
-        if ($months > 0) {
-            $minDate = $maxDate->subMonth($months);
-        }
-
-        $range = new Range('day', $minDate->toString() . ',' . $maxDate->toString());
-
-        foreach ($range->getSubperiods() as $subPeriod) {
-            $dates[] = $subPeriod->getDateStart();
-        }
-
-        return Request::processRequest('CoreAdminHome.invalidateArchivedReports', [
-            'format'  => 'json',
-            'idSites' => $siteIds,
-            'period'  => false,
-            'dates'   => implode(',', $dates),
-            'segment' => $segment
-        ]);
     }
 }

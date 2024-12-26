@@ -1,5 +1,25 @@
 # CHANGELOG
 
+## [5.0.3] - 2024-12-26
+
+### Added
+
+- API for report invalidations.
+
+### Changed
+
+- Moved function invalidateReports to API so we can use API functionality to invalidate reports.
+- Removed deprecated functions.
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+### Security
+
+
 - 5.0.2: Added plugin category for marketplace
 
 - 5.0.1: Added license
